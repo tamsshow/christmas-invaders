@@ -22,7 +22,6 @@ background = pygame.image.load("background.png")
 
 #background sound
 def background_music():
-    pygame.mixer.init()
     mixer.music.load("thomas the tank engine earrape.wav")
     mixer.music.set_volume(0.05)
     mixer.music.play(-1)
@@ -110,8 +109,6 @@ def button(button_x, button_y, button_height, button_width, button_color, button
     pygame.draw.rect(screen, button_color, (button_x, button_y, button_width, button_height))
     button_text = regular_text.render(button_text, True, black)
     screen.blit(button_text, (button_x + (button_width/8), button_y + (button_height/3)))
-
-
 
 
 class Player():
@@ -248,7 +245,11 @@ def game_over():
     over_text = large_text.render("GAME OVER", True, white)
     screen.blit(over_text, (80, 200))
 
+#game intro
+state = game_intro()
 
+#start ticks for countdown
+start_ticks = pygame.time.get_ticks()
 
 #countdown timer
 class Timer():
@@ -261,14 +262,11 @@ class Timer():
         self.pause_time = 0
     def display(self,state):
         game_start = pygame.time.get_ticks()
-        
         if state == "controls" or state == "pause":
             self.pause_time = pygame.time.get_ticks() / 1000
-        else:
-            self.pause_time = 0
+            print (self.pause_time)
         self.seconds = ((game_start - self.start_tick) / 1000)  # calculate how many seconds
-        self.endtime += self.pause_time
-        timer_display = self.endtime - self.seconds
+        timer_display = self.endtime - self.seconds + self.pause_time
         timer_text = regular_text.render("Time Left: %is" % (timer_display), True, white)
         if state == "playing":
             screen.blit(timer_text, (650, 10))
@@ -280,20 +278,49 @@ class Timer():
         else:
             return state
 
-        clock.tick(60)
-        pygame.display.flip()
 
-def game_play(state):
-    """four states ('playing', 'controls', 'pause', 'game over')
-    that determine what screens will appear
 
-    """
-    timer = Timer(start_ticks)
 
-    #regular game play
+
+
+    #clock.tick(30)
+    #pygame.display.update()
+
+#game loop
+running = True
+
+# background music
+background_music()
+
+while running:
+    #drawing the screen color (r,g,b)
+    screen.fill(black)
+    #backgound image
+    screen.blit(background, (0,0))
+
+
+    #getting every event in console
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                state = "playing"
+            if event.key == pygame.K_c:
+                state = "controls"
+            if event.key == pygame.K_p:
+                state = "pause"
+            if event.key == pygame.K_q:
+                running = False
+
+
+        if state == 'playing':
+            spaceship.move()
+            bullet.fire(spaceship.x)
+
     if state == "playing":
         mixer.music.unpause()
-
+        timer = Timer(start_ticks)
         state = timer.display(state)
 
         spaceship.draw()
@@ -323,17 +350,14 @@ def game_play(state):
         bullet.move()
         score_value.show_score()
 
-    #controls screen
     elif state == "controls":
         screen.fill(black)
         state = timer.display(state)
         mixer.music.pause()
-        #the actual screen is in a different function
         control_screen()
-        pygame.display.flip()
+        sleep(30)
         state = 'playing'
 
-    #pause screen
     elif state == "pause":
         mixer.music.pause()
         state = timer.display(state)
@@ -344,62 +368,10 @@ def game_play(state):
         screen.blit(continue_msg, (225, 305))
         screen.blit(quit_msg, (225, 325))
 
-
-    #game over screen
     elif state == 'game over':
-        state = timer.display(state)
         mixer.music.stop()
         game_over()
         score_value.show_score()
-
-
-
-
-
-    #clock.tick(30)
-    #pygame.display.update()
-
-#game loop
-running = True
-# game intro
-state = game_intro()
-
-# start ticks for countdown
-start_ticks = pygame.time.get_ticks()
-
-# background music
-background_music()
-
-while running:
-
-    
-    #drawing the screen color (r,g,b)
-    screen.fill(black)
-    #backgound image
-    screen.blit(background, (0,0))
-
-
-    #getting every event in console
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                state = "playing"
-            if event.key == pygame.K_c:
-                state = "controls"
-            if event.key == pygame.K_p:
-                state = "pause"
-            if event.key == pygame.K_q:
-                running = False
-
-
-        if state == 'playing':
-            spaceship.move()
-            bullet.fire(spaceship.x)
-
-    game_play(state)
-
 
 
 
